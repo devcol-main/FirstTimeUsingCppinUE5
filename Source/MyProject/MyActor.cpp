@@ -24,15 +24,44 @@ void AMyActor::BeginPlay()
 	// 0,0,5 에서 시작
 	SetActorLocation(FVector(0, 0, 50));
 	
+	FString CountNumPlayed = "Num Played: ";
+	
+	int32 numEventSuccess = 0;
+	float TotalDistanceMoved = 0.f;
+	
 	for (int32 i = 0; i < 10; ++i)
 	{
-		Move();
+		//UE_LOG(LogTemp, Warning, TEXT("BeginPlay"));
+		
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, CountNumPlayed + FString::FromInt(i+1));
+		}
+		
+		TriggerEvent(numEventSuccess, TotalDistanceMoved);
+	
+		
+		//Move();
+		//Turn();
 	}
-
-	for (int32 i = 0; i < 10; ++i)
+	
+	// 1000.f = Time to display in seconds (effectively "endless" for a session)
+	if (GEngine)
 	{
-		Turn();
+		GEngine->AddOnScreenDebugMessage(-1, 1000.f, FColor::Emerald, FString("=== Summary ===") );
+		
+		GEngine->AddOnScreenDebugMessage(-1, 1000.f, FColor::Emerald, 
+		FString("Total Moved Distance: ") + FString::SanitizeFloat(TotalDistanceMoved) + FString(" | ")  
+					+ FString("Event Success: ") + FString::FromInt(numEventSuccess)
+			);
+		
+		GEngine->AddOnScreenDebugMessage(-1, 1000.f, FColor::Emerald, FString("=== END ==="));
+		
+		
 	}
+	UE_LOG(LogTemp, Error, TEXT("numEventSuccess = %s"), * FString::FromInt(numEventSuccess) );
+	UE_LOG(LogTemp, Error, TEXT("TotalDistanceMoved = %s"), * FString::SanitizeFloat(TotalDistanceMoved));
+	
 	
 }
 
@@ -47,8 +76,11 @@ void AMyActor::Tick(float DeltaTime)
 */
 
 
-void AMyActor::Move()
+void AMyActor::Move(float &TotalDistanceMoved)
 {
+	
+	FVector BeforeMoveLocation = GetActorLocation();
+	
 	UE_LOG(LogTemp, Warning, TEXT("Move()"));
 
 	FVector Target;
@@ -61,11 +93,22 @@ void AMyActor::Move()
 	AddActorWorldOffset(Target);
 
 	FVector CurrentLocation = GetActorLocation();
+	
+	float DistanceMoved = FVector::Dist(BeforeMoveLocation, CurrentLocation);
+	
+	TotalDistanceMoved += DistanceMoved;
+	
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, CurrentLocation.ToString());
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Green, FString("Move: ") + CurrentLocation.ToString() 
+		+ FString(" | Distance Moved: ") +  FString::SanitizeFloat(DistanceMoved));	
+		
 	}
+	
+	
 	UE_LOG(LogTemp, Warning, TEXT("Location = %s"), * CurrentLocation.ToString());
+	
+	
 }
 
 void AMyActor::Turn()
@@ -83,9 +126,48 @@ void AMyActor::Turn()
 	FRotator CurrentRotation = GetActorRotation();
 	if (GEngine)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, CurrentRotation.ToString());
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Purple, FString("Rotation: ") +CurrentRotation.ToString());
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Rotation = %s"), *CurrentRotation.ToString());
+}
+
+void AMyActor::TriggerEvent(int32 &NumS, float &TotalDistanceMoved)
+{
+	int32 randResult = FMath::RandRange(0, 1);
+	bool isRandSucess;
+	
+	if (randResult)
+	{
+		isRandSucess = true;	
+	}
+	else
+	{
+		isRandSucess = false;
+	}
+	
+	
+	//UE_LOG(LogTemp, Warning, TEXT("TriggerEvent"));
+	
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::White, TEXT("TriggerEvent Start"));
+	}
+	
+	if (isRandSucess)
+	{
+		++NumS;
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, TEXT("Success"));
+		
+		Move(TotalDistanceMoved);
+		Turn();
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, TEXT("Failed"));
+	}
+	
+	
+	
 }
 
 

@@ -23,7 +23,8 @@ public:
 	// Called every frame
 	//virtual void Tick(float DeltaTime) override;
 	
-	void Move();
+	void Move(float &TotalDistanceMoved);
 	void Turn();
+	void TriggerEvent(int32 &NumS, float &TotalDistanceMoved);
 
 };
